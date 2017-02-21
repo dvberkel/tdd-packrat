@@ -5,12 +5,12 @@ import java.nio.file.Paths;
 
 public interface Parser {
 
-    public static Parser from(String grammarLocation) {
+    static Parser from(String grammarLocation) {
         Path path = Paths.get(grammarLocation);
         return from(path);
     }
 
-    public static Parser from(Path grammarPath) {
+    static Parser from(Path grammarPath) {
         Parser bootStrapped = new BootStrappedParser();
         Ast ast = bootStrapped.parse(grammarPath);
         Transformer<Ast, Parser> createParser = new CreateParser();
