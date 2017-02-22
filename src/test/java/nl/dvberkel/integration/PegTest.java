@@ -17,7 +17,7 @@ public class PegTest {
     public void shouldParseFromAGrammer() {
         Parser parser = Parser.from("test/resources/grammars/PegTest.peg");
 
-        Ast ast = parser.parse(Paths.get("test/resources/input/PegTest.txt"));
+        Ast ast = parser.parse("test/resources/input/PegTest.txt");
 
         assertThat(ast, is(nullValue()));
     }

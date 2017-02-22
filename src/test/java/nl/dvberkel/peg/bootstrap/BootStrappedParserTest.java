@@ -6,7 +6,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -21,15 +20,16 @@ public class BootStrappedParserTest {
     @Parameterized.Parameters
     public static Collection<Object[]> data() {
         Collection<Object[]> data = new ArrayList<>();
-        data.add(new Object[]{"test/resources/grammars/simple.peg", grammar(definition("a", characterClass()))});
+        data.add(new Object[]{"src/test/resources/grammars/simple-a.peg", grammar(definition("a", characterClass()))});
+        data.add(new Object[]{"src/test/resources/grammars/simple-b.peg", grammar(definition("b", characterClass()))});
         return data;
     }
 
-    private final String grammarLocation;
+    private final String grammarPath;
     private final Ast expectedAst;
 
-    public BootStrappedParserTest(String grammarLocation, Ast expectedAst) {
-        this.grammarLocation = grammarLocation;
+    public BootStrappedParserTest(String grammarPath, Ast expectedAst) {
+        this.grammarPath = grammarPath;
         this.expectedAst = expectedAst;
     }
 
@@ -37,7 +37,7 @@ public class BootStrappedParserTest {
     public void shouldParseSimpleGrammar() {
         Parser parser = new BootStrappedParser();
 
-        Ast ast = parser.parse(Paths.get(grammarLocation));
+        Ast ast = parser.parse(grammarPath);
 
         assertThat(ast, is(expectedAst));
 

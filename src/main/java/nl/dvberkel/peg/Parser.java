@@ -1,30 +1,24 @@
 package nl.dvberkel.peg;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 public interface Parser {
 
-    static Parser from(String grammarLocation) {
-        Path path = Paths.get(grammarLocation);
-        return from(path);
-    }
-
-    static Parser from(Path grammarPath) {
+    static Parser from(String grammarPath) {
         Parser bootStrapped = new BootStrappedParser();
         Ast ast = bootStrapped.parse(grammarPath);
         Transformer<Ast, Parser> createParser = new CreateParser();
         return createParser.transform(ast);
     }
 
-    Ast parse(Path grammarPath);
+    Ast parse(String grammarPath);
 }
 
 
 class BootStrappedParser implements Parser {
 
     @Override
-    public Ast parse(Path grammarPath) {
+    public Ast parse(String grammarPath) {
         return null;
     }
 }
@@ -40,7 +34,7 @@ class CreateParser implements Transformer<Ast, Parser> {
 class PegParser implements Parser {
 
     @Override
-    public Ast parse(Path grammarPath) {
+    public Ast parse(String grammarPath) {
         return null;
     }
 }

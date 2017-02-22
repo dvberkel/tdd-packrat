@@ -3,7 +3,7 @@ package nl.dvberkel.peg.bootstrap;
 import nl.dvberkel.peg.Ast;
 import nl.dvberkel.peg.Parser;
 
-import java.nio.file.Path;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -16,8 +16,8 @@ public class BootStrappedParser implements Parser {
         return new Grammar(definitions);
     }
 
-    public static Definition definition(String identifier, CharacterClass characterClass) {
-        return new Definition(identifier, characterClass);
+    public static Definition definition(String identifier, Expression expression) {
+        return new Definition(identifier, expression);
     }
 
     public static CharacterClass characterClass() {
@@ -25,8 +25,78 @@ public class BootStrappedParser implements Parser {
     }
 
     @Override
-    public Ast parse(Path grammarPath) {
-        return grammar(definition("a", characterClass()));
+    public Ast parse(String grammarPath) {
+        Tokenizer tokenizer;
+        try {
+            tokenizer = new Tokenizer(grammarPath);
+        } catch (FileNotFoundException e) {
+            tokenizer = null;
+        }
+        return parseGrammer(tokenizer);
+    }
+
+    private Grammar parseGrammer(Tokenizer tokenizer) {
+        Collection<Definition> definitions = parseDefinitions(tokenizer);
+        return new Grammar(definitions);
+    }
+
+    private Collection<Definition> parseDefinitions(Tokenizer tokenizer) {
+        Collection<Definition> definitions = new ArrayList<>();
+        Definition definition = parseDefinition(tokenizer);
+        do {
+            if (definition == null) {
+                throw new IllegalStateException();
+            }
+            definitions.add(definition);
+            definition = parseDefinition(tokenizer);
+        } while (false);
+        return definitions;
+    }
+
+    private Definition parseDefinition(Tokenizer tokenizer) {
+        String identifier = parseIdentifier(tokenizer);
+        parseRightArrow();
+        Expression expression = parseExpression(tokenizer);
+        return definition(identifier, expression);
+    }
+
+    private String parseIdentifier(Tokenizer tokenizer) {
+        return tokenizer.readIdentifier();
+    }
+
+    private void parseRightArrow() {
+        /* do nothing */
+    }
+
+    private Expression parseExpression(Tokenizer tokenizer) {
+        return characterClass();
+    }
+}
+
+class Tokenizer {
+    private final Reader reader;
+
+    public Tokenizer(String grammarPath) throws FileNotFoundException {
+        this.reader = new FileReader(new File(grammarPath));
+
+    }
+
+    public String readIdentifier() {
+        return read();
+    }
+
+    private String read() {
+        int character;
+        try {
+            character = reader.read();
+            if (character != -1) {
+                return String.valueOf((char)character);
+            } else {
+                throw new IllegalStateException();
+            }
+        } catch (IOException e) {
+            throw new IllegalStateException();
+        }
     }
 }
 
@@ -55,9 +125,9 @@ class Grammar implements Ast {
 
 class Definition {
     private final String identifier;
-    private final CharacterClass characterClass;
+    private final Expression characterClass;
 
-    public Definition(String identifier, CharacterClass characterClass) {
+    public Definition(String identifier, Expression characterClass) {
         this.identifier = identifier;
         this.characterClass = characterClass;
     }
@@ -81,7 +151,9 @@ class Definition {
     }
 }
 
-class CharacterClass {
+interface Expression {}
+
+class CharacterClass implements Expression {
 
     @Override
     public boolean equals(Object o) {
