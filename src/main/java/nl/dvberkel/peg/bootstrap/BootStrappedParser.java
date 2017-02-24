@@ -1,12 +1,16 @@
 package nl.dvberkel.peg.bootstrap;
 
 import nl.dvberkel.peg.Ast;
+import nl.dvberkel.peg.Failure;
+import nl.dvberkel.peg.ParseResult;
 import nl.dvberkel.peg.Parser;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+
+import static nl.dvberkel.peg.ParseResult.success;
 
 public class BootStrappedParser implements Parser {
     public static Ast grammar(Definition first, Definition... rest) {
@@ -25,14 +29,14 @@ public class BootStrappedParser implements Parser {
     }
 
     @Override
-    public Ast parse(String grammarPath) {
+    public ParseResult<Ast> parse(String grammarPath) {
         Tokenizer tokenizer;
         try {
             tokenizer = new Tokenizer(grammarPath);
         } catch (FileNotFoundException e) {
-            tokenizer = null;
+            return Failure.instance;
         }
-        return parseGrammer(tokenizer);
+        return success(parseGrammer(tokenizer));
     }
 
     private Grammar parseGrammer(Tokenizer tokenizer) {

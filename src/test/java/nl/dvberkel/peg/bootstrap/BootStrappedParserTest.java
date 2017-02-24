@@ -1,7 +1,9 @@
 package nl.dvberkel.peg.bootstrap;
 
 import nl.dvberkel.peg.Ast;
+import nl.dvberkel.peg.ParseResult;
 import nl.dvberkel.peg.Parser;
+import nl.dvberkel.peg.Success;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -14,6 +16,7 @@ import static nl.dvberkel.peg.bootstrap.BootStrappedParser.definition;
 import static nl.dvberkel.peg.bootstrap.BootStrappedParser.grammar;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(Parameterized.class)
 public class BootStrappedParserTest {
@@ -37,9 +40,10 @@ public class BootStrappedParserTest {
     public void shouldParseSimpleGrammar() {
         Parser parser = new BootStrappedParser();
 
-        Ast ast = parser.parse(grammarPath);
+        ParseResult<Ast> result = parser.parse(grammarPath);
 
-        assertThat(ast, is(expectedAst));
+        assertTrue(result.isSuccess());
+        assertThat(((Success<Ast>)result).unpack(), is(expectedAst));
 
     }
 }

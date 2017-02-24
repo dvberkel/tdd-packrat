@@ -1,26 +1,22 @@
 package nl.dvberkel.peg;
 
-import java.nio.file.Path;
+import nl.dvberkel.peg.bootstrap.BootStrappedParser;
 
-public interface Parser {
+public interface Parser<T extends Ast> {
 
-    static Parser from(String grammarPath) {
+    static <S extends Ast> Parser<S> from(String grammarPath) {
         Parser bootStrapped = new BootStrappedParser();
-        Ast ast = bootStrapped.parse(grammarPath);
-        Transformer<Ast, Parser> createParser = new CreateParser();
-        return createParser.transform(ast);
+        ParseResult<S> result = bootStrapped.parse(grammarPath);
+        if (result.isSuccess()) {
+            S ast = ((Success<S>) result).unpack();
+            Transformer<Ast, Parser> createParser = new CreateParser();
+            return createParser.transform(ast);
+        } else {
+            throw new IllegalStateException("unable to parse");
+        }
     }
 
-    Ast parse(String grammarPath);
-}
-
-
-class BootStrappedParser implements Parser {
-
-    @Override
-    public Ast parse(String grammarPath) {
-        return null;
-    }
+    ParseResult<? extends Ast> parse(String grammarPath);
 }
 
 class CreateParser implements Transformer<Ast, Parser> {
@@ -31,10 +27,10 @@ class CreateParser implements Transformer<Ast, Parser> {
     }
 }
 
-class PegParser implements Parser {
+class PegParser implements Parser<Ast> {
 
     @Override
-    public Ast parse(String grammarPath) {
+    public ParseResult<Ast> parse(String grammarPath) {
         return null;
     }
 }
