@@ -6,6 +6,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 import static nl.dvberkel.peg.ParseResult.success;
 import static nl.dvberkel.peg.ParseResult.unpack;
@@ -106,18 +107,33 @@ public class BootStrappedParser implements Parser {
 
 class Tokenizer {
     private final Reader reader;
+    private final List<String> buffer;
+    private int index;
 
     public Tokenizer(String grammarPath) throws FileNotFoundException {
         this.reader = new FileReader(new File(grammarPath));
+        buffer = new ArrayList<String>();
+        index = 0;
 
     }
 
     public String read() {
+        if (bufferDepleted()) {
+            fillBuffer();
+        }
+        return buffer.get(index++);
+    }
+
+    private boolean bufferDepleted() {
+        return index >= buffer.size();
+    }
+
+    private void fillBuffer() {
         int character;
         try {
             character = reader.read();
             if (character != -1) {
-                return String.valueOf((char)character);
+                buffer.add(String.valueOf((char) character));
             } else {
                 throw new IllegalStateException();
             }
