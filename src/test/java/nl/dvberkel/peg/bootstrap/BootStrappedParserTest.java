@@ -20,12 +20,16 @@ import static org.junit.Assert.assertTrue;
 
 @RunWith(Parameterized.class)
 public class BootStrappedParserTest {
-    @Parameterized.Parameters
+    @Parameterized.Parameters(name = "{0}")
     public static Collection<Object[]> data() {
         Collection<Object[]> data = new ArrayList<>();
         data.add(new Object[]{"src/test/resources/grammars/simple-a.peg", grammar(definition("a", characterClass()))});
         data.add(new Object[]{"src/test/resources/grammars/simple-b.peg", grammar(definition("b", characterClass()))});
         data.add(new Object[]{"src/test/resources/grammars/simple-ab.peg", grammar(definition("ab", characterClass()))});
+        data.add(new Object[]{"src/test/resources/grammars/complex-ab.peg", grammar(
+                definition("a", characterClass()),
+                definition("b", characterClass())
+        )});
         return data;
     }
 

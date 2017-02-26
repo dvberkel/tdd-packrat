@@ -97,11 +97,30 @@ public class BootStrappedParser implements Parser {
     }
 
     private ParseResult<String> parseRightArrow(Tokenizer tokenizer) {
-        return success("<-");
+        StringBuilder builder = new StringBuilder();
+        if (tokenizer.peek().matches("<")) {
+            builder.append(tokenizer.read());
+            if (tokenizer.peek().matches("-")) {
+                builder.append(tokenizer.read());
+                return success(builder.toString());
+            }
+        }
+        return Failure.instance;
     }
 
     private ParseResult<Expression> parseExpression(Tokenizer tokenizer) {
-        return success(characterClass());
+        StringBuilder builder = new StringBuilder();
+        if (tokenizer.peek().matches("\\[")) {
+            builder.append(tokenizer.read());
+            if (tokenizer.peek().matches("\\]")) {
+                builder.append(tokenizer.read());
+                while (tokenizer.peek().matches("\\s")) {
+                    tokenizer.read();
+                }
+                return success(characterClass());
+            }
+        }
+        return Failure.instance;
     }
 }
 
@@ -144,6 +163,7 @@ class Tokenizer {
             if (character != -1) {
                 buffer.add(String.valueOf((char) character));
             } else {
+                buffer.add("EOF"); // TODO: do we need a special marker for EOF?
                 break;
             }
         } catch (IOException e) {
