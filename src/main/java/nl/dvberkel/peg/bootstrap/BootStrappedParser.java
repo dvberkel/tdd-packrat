@@ -1,9 +1,6 @@
 package nl.dvberkel.peg.bootstrap;
 
-import nl.dvberkel.peg.Ast;
-import nl.dvberkel.peg.Failure;
-import nl.dvberkel.peg.ParseResult;
-import nl.dvberkel.peg.Parser;
+import nl.dvberkel.peg.*;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -36,44 +33,75 @@ public class BootStrappedParser implements Parser {
         } catch (FileNotFoundException e) {
             return Failure.instance;
         }
-        return success(parseGrammer(tokenizer));
+        return parseGrammer(tokenizer);
     }
 
-    private Grammar parseGrammer(Tokenizer tokenizer) {
-        Collection<Definition> definitions = parseDefinitions(tokenizer);
-        return new Grammar(definitions);
+    private ParseResult<Ast> parseGrammer(Tokenizer tokenizer) {
+        ParseResult<Collection<Definition>> result = parseDefinitions(tokenizer);
+        if (result.isSuccess()) {
+            Success<Collection<Definition>> successfullResult = (Success<Collection<Definition>>) result;
+            return success(new Grammar(successfullResult.unpack()));
+        } else {
+            return Failure.instance;
+        }
     }
 
-    private Collection<Definition> parseDefinitions(Tokenizer tokenizer) {
+    private ParseResult<Collection<Definition>> parseDefinitions(Tokenizer tokenizer) {
         Collection<Definition> definitions = new ArrayList<>();
-        Definition definition = parseDefinition(tokenizer);
-        do {
-            if (definition == null) {
-                throw new IllegalStateException();
+        ParseResult<Definition> result = parseDefinition(tokenizer);
+        if (result.isSuccess()) {
+            do {
+                Definition definition = ((Success<Definition>) result).unpack();
+                definitions.add(definition);
+                result = parseDefinition(tokenizer);
+            } while (result.isSuccess());
+            return success(definitions);
+        } else {
+            return Failure.instance;
+        }
+    }
+
+    private ParseResult<Definition> parseDefinition(Tokenizer tokenizer) {
+        ParseResult<String> identifierResult = parseIdentifier(tokenizer);
+        if (identifierResult.isSuccess()) {
+            String identifier = ((Success<String>) identifierResult).unpack();
+            ParseResult<String> arrowResult = parseRightArrow(tokenizer);
+            if (arrowResult.isSuccess()) {
+                ParseResult<Expression> expressionResult = parseExpression(tokenizer);
+                if (expressionResult.isSuccess()) {
+                    Expression expression = ((Success<Expression>) expressionResult).unpack();
+                    return success(definition(identifier, expression));
+                } else {
+                    return Failure.instance;
+                }
+            } else {
+                return Failure.instance;
             }
-            definitions.add(definition);
-            definition = parseDefinition(tokenizer);
-        } while (false);
-        return definitions;
+        } else {
+            return Failure.instance;
+        }
     }
 
-    private Definition parseDefinition(Tokenizer tokenizer) {
-        String identifier = parseIdentifier(tokenizer);
-        parseRightArrow();
-        Expression expression = parseExpression(tokenizer);
-        return definition(identifier, expression);
+    private ParseResult<String> parseIdentifier(Tokenizer tokenizer) {
+        StringBuilder builder = new StringBuilder();
+        String character = tokenizer.read();
+        if (character.matches("[a-zA-Z_]")) {
+            do {
+                builder.append(character);
+                character = tokenizer.read();
+            } while (character.matches("[a-zA-Z_0-9]"));
+            return success(builder.toString());
+        } else {
+            return Failure.instance;
+        }
     }
 
-    private String parseIdentifier(Tokenizer tokenizer) {
-        return tokenizer.readIdentifier();
+    private ParseResult<String> parseRightArrow(Tokenizer tokenizer) {
+        return success("<-");
     }
 
-    private void parseRightArrow() {
-        /* do nothing */
-    }
-
-    private Expression parseExpression(Tokenizer tokenizer) {
-        return characterClass();
+    private ParseResult<Expression> parseExpression(Tokenizer tokenizer) {
+        return success(characterClass());
     }
 }
 
@@ -85,11 +113,7 @@ class Tokenizer {
 
     }
 
-    public String readIdentifier() {
-        return read();
-    }
-
-    private String read() {
+    public String read() {
         int character;
         try {
             character = reader.read();
