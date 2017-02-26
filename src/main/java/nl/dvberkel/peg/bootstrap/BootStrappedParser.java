@@ -106,6 +106,7 @@ public class BootStrappedParser implements Parser {
 }
 
 class Tokenizer {
+    private static final int BUFFER_FILL_AMOUNT = 10;
     private final Reader reader;
     private final List<String> buffer;
     private int index;
@@ -130,12 +131,13 @@ class Tokenizer {
 
     private void fillBuffer() {
         int character;
+        for (int charactersRead = 0; charactersRead < BUFFER_FILL_AMOUNT; charactersRead++)
         try {
             character = reader.read();
             if (character != -1) {
                 buffer.add(String.valueOf((char) character));
             } else {
-                throw new IllegalStateException();
+                break;
             }
         } catch (IOException e) {
             throw new IllegalStateException();
