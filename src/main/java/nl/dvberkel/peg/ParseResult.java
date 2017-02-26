@@ -9,6 +9,15 @@ public interface ParseResult<T> {
         return Failure.instance;
     }
 
+    static <S> S unpack(ParseResult<S> result) {
+        if (result.isSuccess()) {
+            return ((Success<S>) result).unpack();
+        } else {
+            throw new IllegalStateException("can not unpack a failed parse result");
+        }
+    }
+
+
     boolean isSuccess();
 }
 

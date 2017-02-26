@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.Collection;
 
 import static nl.dvberkel.peg.ParseResult.success;
+import static nl.dvberkel.peg.ParseResult.unpack;
 
 public class BootStrappedParser implements Parser {
     public static Ast grammar(Definition first, Definition... rest) {
@@ -39,8 +40,7 @@ public class BootStrappedParser implements Parser {
     private ParseResult<Ast> parseGrammer(Tokenizer tokenizer) {
         ParseResult<Collection<Definition>> result = parseDefinitions(tokenizer);
         if (result.isSuccess()) {
-            Success<Collection<Definition>> successfullResult = (Success<Collection<Definition>>) result;
-            return success(new Grammar(successfullResult.unpack()));
+            return success(new Grammar(unpack(result)));
         } else {
             return Failure.instance;
         }
@@ -51,8 +51,7 @@ public class BootStrappedParser implements Parser {
         ParseResult<Definition> result = parseDefinition(tokenizer);
         if (result.isSuccess()) {
             do {
-                Definition definition = ((Success<Definition>) result).unpack();
-                definitions.add(definition);
+                definitions.add(unpack(result));
                 result = parseDefinition(tokenizer);
             } while (result.isSuccess());
             return success(definitions);
@@ -64,12 +63,12 @@ public class BootStrappedParser implements Parser {
     private ParseResult<Definition> parseDefinition(Tokenizer tokenizer) {
         ParseResult<String> identifierResult = parseIdentifier(tokenizer);
         if (identifierResult.isSuccess()) {
-            String identifier = ((Success<String>) identifierResult).unpack();
+            String identifier = unpack(identifierResult);
             ParseResult<String> arrowResult = parseRightArrow(tokenizer);
             if (arrowResult.isSuccess()) {
                 ParseResult<Expression> expressionResult = parseExpression(tokenizer);
                 if (expressionResult.isSuccess()) {
-                    Expression expression = ((Success<Expression>) expressionResult).unpack();
+                    Expression expression = unpack(expressionResult);
                     return success(definition(identifier, expression));
                 } else {
                     return Failure.instance;
