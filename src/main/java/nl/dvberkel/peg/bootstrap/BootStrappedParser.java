@@ -84,11 +84,11 @@ public class BootStrappedParser implements Parser {
 
     private ParseResult<String> parseIdentifier(Tokenizer tokenizer) {
         StringBuilder builder = new StringBuilder();
-        String character = tokenizer.read();
+        String character = tokenizer.peek();
         if (character.matches("[a-zA-Z_]")) {
             do {
-                builder.append(character);
-                character = tokenizer.read();
+                builder.append(tokenizer.read());
+                character = tokenizer.peek();
             } while (character.matches("[a-zA-Z_0-9]"));
             return success(builder.toString());
         } else {
@@ -123,6 +123,13 @@ class Tokenizer {
             fillBuffer();
         }
         return buffer.get(index++);
+    }
+
+    public String peek() {
+        if (bufferDepleted()) {
+            fillBuffer();
+        }
+        return buffer.get(index);
     }
 
     private boolean bufferDepleted() {
