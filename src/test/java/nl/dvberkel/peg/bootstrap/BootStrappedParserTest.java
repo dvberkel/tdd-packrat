@@ -25,6 +25,7 @@ public class BootStrappedParserTest {
         Collection<Object[]> data = new ArrayList<>();
         data.add(new Object[]{"src/test/resources/grammars/simple-a.peg", grammar(definition("a", characterClass()))});
         data.add(new Object[]{"src/test/resources/grammars/simple-b.peg", grammar(definition("b", characterClass()))});
+        data.add(new Object[]{"src/test/resources/grammars/simple-ab.peg", grammar(definition("ab", characterClass()))});
         return data;
     }
 
