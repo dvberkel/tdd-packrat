@@ -5,7 +5,7 @@ public interface ParseResult<T> {
         return new Success(content);
     }
     
-    static ParseResult<Void> failure() {
+    static <S> ParseResult<S> failure() {
         return Failure.instance;
     }
 
