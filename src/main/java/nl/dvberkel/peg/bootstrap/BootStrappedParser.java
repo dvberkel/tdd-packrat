@@ -109,6 +109,10 @@ public class BootStrappedParser implements Parser {
     }
 
     private ParseResult<Expression> parseExpression(Tokenizer tokenizer) {
+        return parseCharacterClass(tokenizer);
+    }
+
+    private ParseResult<Expression> parseCharacterClass(Tokenizer tokenizer) {
         StringBuilder builder = new StringBuilder();
         if (tokenizer.peek().matches("\\[")) {
             builder.append(tokenizer.read());
