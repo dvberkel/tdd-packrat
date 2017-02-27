@@ -11,9 +11,7 @@ import org.junit.runners.Parameterized;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import static nl.dvberkel.peg.bootstrap.BootStrappedParser.characterClass;
-import static nl.dvberkel.peg.bootstrap.BootStrappedParser.definition;
-import static nl.dvberkel.peg.bootstrap.BootStrappedParser.grammar;
+import static nl.dvberkel.peg.bootstrap.BootStrappedParser.*;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -30,6 +28,7 @@ public class BootStrappedParserTest {
                 definition("a", characterClass()),
                 definition("b", characterClass())
         )});
+        data.add(new Object[]{"src/test/resources/grammars/a-empty-literal.peg", grammar(definition("a", literal()))});
         return data;
     }
 

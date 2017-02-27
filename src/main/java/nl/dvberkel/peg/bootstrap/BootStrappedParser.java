@@ -3,10 +3,7 @@ package nl.dvberkel.peg.bootstrap;
 import nl.dvberkel.peg.*;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 import static nl.dvberkel.peg.ParseResult.success;
 import static nl.dvberkel.peg.ParseResult.unpack;
@@ -26,6 +23,8 @@ public class BootStrappedParser implements Parser {
     public static CharacterClass characterClass() {
         return new CharacterClass();
     }
+
+    public static Literal literal() { return new Literal(); }
 
     @Override
     public ParseResult<Ast> parse(String grammarPath) {
@@ -109,7 +108,20 @@ public class BootStrappedParser implements Parser {
     }
 
     private ParseResult<Expression> parseExpression(Tokenizer tokenizer) {
-        return parseCharacterClass(tokenizer);
+        tokenizer.mark();
+        ParseResult<Expression> result = parseLiteral(tokenizer);
+        if (result.isSuccess()) {
+            tokenizer.discardMark();
+            return result;
+        }
+        tokenizer.visitMark();
+        result = parseCharacterClass(tokenizer);
+        if (result.isSuccess()) {
+            tokenizer.discardMark();
+            return result;
+        }
+        tokenizer.discardMark();
+        return Failure.instance;
     }
 
     private ParseResult<Expression> parseCharacterClass(Tokenizer tokenizer) {
@@ -126,16 +138,33 @@ public class BootStrappedParser implements Parser {
         }
         return Failure.instance;
     }
+
+    private ParseResult<Expression> parseLiteral(Tokenizer tokenizer) {
+        StringBuilder builder = new StringBuilder();
+        if (tokenizer.peek().matches("'")) {
+            builder.append(tokenizer.read());
+            if (tokenizer.peek().matches("'")) {
+                builder.append(tokenizer.read());
+                while (tokenizer.peek().matches("\\s")) {
+                    tokenizer.read();
+                }
+                return success(literal());
+            }
+        }
+        return Failure.instance;
+    }
 }
 
 class Tokenizer {
     private static final int BUFFER_FILL_AMOUNT = 10;
     private final Reader reader;
+    private final Stack<Integer> marks;
     private final List<String> buffer;
     private int index;
 
     public Tokenizer(String grammarPath) throws FileNotFoundException {
         this.reader = new FileReader(new File(grammarPath));
+        marks = new Stack<Integer>();
         buffer = new ArrayList<String>();
         index = 0;
 
@@ -173,6 +202,18 @@ class Tokenizer {
         } catch (IOException e) {
             throw new IllegalStateException();
         }
+    }
+
+    public void mark() {
+        marks.push(index);
+    }
+
+    public void discardMark() {
+        marks.pop();
+    }
+
+    public void visitMark() {
+        index = marks.peek();
     }
 }
 
@@ -230,6 +271,21 @@ class Definition {
 interface Expression {}
 
 class CharacterClass implements Expression {
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return 37;
+    }
+}
+
+class Literal implements Expression {
 
     @Override
     public boolean equals(Object o) {
